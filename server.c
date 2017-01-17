@@ -16,7 +16,7 @@
 #define FALSE 0
 
 #define PORT 2222
-#define SECRET_TOKEN "vd12u30awdj0uejoi"
+#define SECRET_TOKEN "b12389doajdawd9123ad"
 
 #define MAX_ROOM 32
 #define MAX_SLOT 16
@@ -62,6 +62,8 @@ void showRooms(int clientid);
 int isPublicRoom(int roomid);
 int isModeratorRoom(int clientid, int roomid);
 int isFullRoom(int roomid);
+
+int new_read(int sockid, char *buffer, int dim);
 
 struct 
 {
@@ -179,14 +181,13 @@ int main()
                     } 
                     else
                     {
-                        read(fd, text, 256);
-                        
+                        new_read(fd, text, 256);
                         if(infoU[fd].realClient == 0)
                         {
                             if(!strcmp(text, SECRET_TOKEN))
                             {
                                 char buffer[256];
-                                read(fd, buffer, 256);
+                                new_read(fd, buffer, 256);
                                 if(strlen(buffer) < 3 || strlen(buffer) > 15)
                                 {
                                     sendClientMessage(fd, "Il nickname deve contenere da 3 a 15 caratteri.\n\n");
@@ -1134,4 +1135,16 @@ int deleteUserData(char *name)
         return 1;
     else
         return 0;
+}
+
+int new_read(int sockid, char *buffer, int dim)
+{
+    int n, i;
+    for(i = 0; i < dim; i++)
+    {
+        n = read(sockid, &buffer[i], 1);
+        if(n <= 0 || buffer[i] == '\0')
+            break;
+    }
+    return n;
 }

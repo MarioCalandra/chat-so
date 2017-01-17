@@ -12,11 +12,10 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include <wait.h>
-#include <fcntl.h>
 
 #define ADDRESS "127.0.0.1"
 #define PORT 2222
-#define SECRET_TOKEN "vd12u30awdj0uejoi"
+#define SECRET_TOKEN "b12389doajdawd9123ad"
 #define MSG_KEY 38572
 
 struct
@@ -29,6 +28,7 @@ int sockid, reading_pid;
 
 void sighandler(int signum);
 int new_read(int sockid, char *buffer, int dim);
+void new_write(int sockid, char *buffer, int dim);
 
 int main(int argc, char *argv[])
 {
@@ -48,16 +48,15 @@ int main(int argc, char *argv[])
     char token[128];
     strcpy(token, SECRET_TOKEN);
     sock_conn = connect(sockid, (struct sockaddr *)&c_address, sizeof(c_address));
-    write(sockid, token, 128);
     if(sock_conn == -1)
     {
         perror("Connect client");
         exit(EXIT_FAILURE);
-    }
-    
+    }    
     char format_text[256];
     sprintf(format_text, "%s", argv[1]);
-    write(sockid, format_text, 16);
+    new_write(sockid, token, 128);
+    new_write(sockid, format_text, 32);
     signal(SIGTERM, sighandler);
     signal(SIGUSR1, sighandler);
     
@@ -65,7 +64,7 @@ int main(int argc, char *argv[])
     msgctl(msgid, IPC_RMID, NULL);
     msgid = msgget((key_t)MSG_KEY, 0666 | IPC_CREAT);
     
-    char text[257];
+    char text[256];
     int nread;
     pid_t pid;
     pid = fork();
@@ -137,6 +136,17 @@ int new_read(int sockid, char *buffer, int dim)
             break;
     }
     return n;
+}
+
+void new_write(int sockid, char *buffer, int dim)
+{  
+    int i;
+    for(i = 0; i < dim; i++)
+    {
+        write(sockid, &buffer[i], 1);
+        if(buffer[i] == '\0')
+            break;
+    }
 }
 
 void sighandler(int signum)
