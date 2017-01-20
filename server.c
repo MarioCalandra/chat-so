@@ -87,7 +87,7 @@ struct
     char password[32];
     int slot;
     int clients;
-} infoR[MAX_ROOM]; // /banip /kick /setrank /broadcast /remove
+} infoR[MAX_ROOM];
 
 char *general_commands[] = {"/register", "/login", "/setpassword", "/pm", "/clear", "/exit", "/help"};
 char *room_commands[] = {"/refresh", "/join", "/leave", "/list"};
