@@ -32,24 +32,23 @@ Per interagire con il server, è indispensabile che l'utente faccia uso di deter
 - */pm*: permette una comunicazione tra due utenti tramite *Private Message*
 - */clear*: esegue *clear* nel client per pulire la shell (operazione effettuata tramite una `fork` e una `execlp` nel client)
 - */exit*: disconnette il client dal server
-
-*/refresh*: aggiorna la panoramica delle stanze
-*/join*: permette di accedere ad una stanza
-*/leave*: fa abbandonare la stanza in cui ci si trova
-*/list*: mostra la lista di utenti all'interno della propria stanza
-*/makeroom*: permette di creare una stanza (solo gli *utenti avanzati* possono farlo)
+- */refresh*: aggiorna la panoramica delle stanze
+- */join*: permette di accedere ad una stanza
+- */leave*: fa abbandonare la stanza in cui ci si trova
+- */list*: mostra la lista di utenti all'interno della propria stanza
+- */makeroom*: permette di creare una stanza (solo gli *utenti avanzati* possono farlo)
 
 Di seguito i comandi eseguibili solo dal *moderatore* di una stanza (o da un *admin*):
 
-*/removeroom*: rimuove la stanza inserita
-*/kickr*: permette di kickare un utente dalla propria stanza
-*/setrpassword*: serve a cambiare la password della stanza
+- */removeroom*: rimuove la stanza inserita
+- */kickr*: permette di kickare un utente dalla propria stanza
+- */setrpassword*: serve a cambiare la password della stanza
 
 Di seguito i comandi usufruibili solo da un *admin*:
 
-*/kick*: kicka un utente dal server
-*/broadcast*: permette di inviare un messaggio in broadcast
-*/banip*: banna un IP permanentemente dal server
-*/setrank*: permette di settare il rank di un utente
-*/remove*: rimuove dal database un utente
+- */kick*: kicka un utente dal server
+- */broadcast*: permette di inviare un messaggio in broadcast
+- */banip*: banna un IP permanentemente dal server
+- */setrank*: permette di settare il rank di un utente
+- */remove*: rimuove dal database un utente
 
