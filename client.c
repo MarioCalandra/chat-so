@@ -12,6 +12,7 @@
 #include <sys/msg.h>
 #include <signal.h>
 #include <wait.h>
+#include <pthread.h>
 
 #define ADDRESS "127.0.0.1"
 #define PORT 2222
@@ -57,7 +58,6 @@ int main(int argc, char *argv[])
     sprintf(format_text, "%s", argv[1]);
     new_write(sockid, token, 128);
     new_write(sockid, format_text, 32);
-    signal(SIGTERM, sighandler);
     signal(SIGUSR1, sighandler);
     
     msgid = msgget((key_t)MSG_KEY, 0666 | IPC_CREAT);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
                     }
                 }
                 else
-                    write(sockid, message.text, 256);
+                    new_write(sockid, message.text, 256);
             }
             break;
     }
@@ -154,11 +154,6 @@ void sighandler(int signum)
     char buff[128 + 32];
     switch(signum)
     {
-        case SIGTERM:
-            printf("[INFO] Sei stato kickato dal server.\n");
-            kill(reading_pid, SIGKILL);
-            wait(NULL);
-            exit(EXIT_SUCCESS);
         case SIGUSR1:
             wait(NULL);
             close(sockid);
