@@ -26,7 +26,7 @@ Le informazioni di *utenti* e *stanze* sono salvate all'interno di due file `.cs
 
 ###COMANDI
 
-Per interagire con il server, è indispensabile che l'utente faccia uso di determinati *comandi* da scrivere direttamente nel writer. Ognuno di essi ha la particolarità di essere preceduto dal simbolo `/` per far capire al server di avere a che fare con un comando e non con un semplice testo. Di seguito viene mostrata una lista dei comandi disponibili, con breve spiegazione annessa.
+Per interagire con il server, è indispensabile che l'utente faccia uso di determinati *comandi* da scrivere direttamente nel writer preceduti dal simbolo `/`. Di seguito viene mostrata una lista dei comandi disponibili, con breve spiegazione annessa.
 
 - */help*: mostra una panoramica dei comandi *usufruibili* dall'utente
 - */register*: permette ad un utente non registrato di registrarti
