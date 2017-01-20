@@ -19,17 +19,20 @@
 #define SECRET_TOKEN "b12389doajdawd9123ad"
 #define MSG_KEY 38572
 
+#define TRUE 1
+#define FALSE 0
+
 struct
 {
     long int type;
     char text[128];
 } message;
 
-int sockid, reading_pid;
+int sockid;
 
-void sighandler(int signum);
 int new_read(int sockid, char *buffer, int dim);
 void new_write(int sockid, char *buffer, int dim);
+void *reading_function(void *arg);
 
 int main(int argc, char *argv[])
 {
@@ -58,71 +61,47 @@ int main(int argc, char *argv[])
     sprintf(format_text, "%s", argv[1]);
     new_write(sockid, token, 128);
     new_write(sockid, format_text, 32);
-    signal(SIGUSR1, sighandler);
     
     msgid = msgget((key_t)MSG_KEY, 0666 | IPC_CREAT);
     msgctl(msgid, IPC_RMID, NULL);
     msgid = msgget((key_t)MSG_KEY, 0666 | IPC_CREAT);
     
-    char text[256];
-    int nread;
-    pid_t pid;
-    pid = fork();
+    pthread_t reading_thread;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&reading_thread, NULL, reading_function, (void *)&sockid);
+    pthread_attr_destroy(&attr);
     
-    switch(pid)
+    while(1)
     {
-        case -1:
-            perror("Fork (client)");
+        if(msgrcv(msgid, (void *)&message, 2048, 0, 0) == -1)
+        {
+            perror("Msgrcv (client)");
             exit(EXIT_FAILURE);
-        case 0:
-            while(1)
+        }
+        if(!strcmp(message.text, "/exit"))
+        {
+            printf("[INFO] Ti sei disconnesso.\n");
+            exit(EXIT_SUCCESS);
+        }
+        else if(!strcmp(message.text, "/clear"))
+        {
+            switch(fork())
             {
-                if(new_read(sockid, text, 256) == 0)
-                {
-                    kill(getppid(), SIGUSR1);
-                    close(sockid);
-                    exit(EXIT_SUCCESS);
-                    break;
-                }
-                printf("%s", text);
-                fflush(stdout);
-            }
-            break;
-        default:
-            reading_pid = pid;
-            while(1)
-            {
-                if(msgrcv(msgid, (void *)&message, 2048, 0, 0) == -1)
-                {
-                    perror("Msgrcv (client)");
+                case -1:
+                    perror("Fork clear (client)");
                     exit(EXIT_FAILURE);
-                }
-                if(!strcmp(message.text, "/exit"))
-                {
-                    printf("[INFO] Ti sei disconnesso.\n");
-                    kill(pid, SIGKILL);
+                case 0:
+                    execlp("clear", "clear", NULL);
+                default:
                     wait(NULL);
-                    exit(EXIT_SUCCESS);
-                }
-                else if(!strcmp(message.text, "/clear"))
-                {
-                    switch(fork())
-                    {
-                        case -1:
-                            perror("Fork clear (client)");
-                            exit(EXIT_FAILURE);
-                        case 0:
-                            execlp("clear", "clear", NULL);
-                        default:
-                            wait(NULL);
-                            printf("[INFO] La board è stata pulita.\n\n");
-                            break;
-                    }
-                }
-                else
-                    new_write(sockid, message.text, 256);
+                    printf("[INFO] La board è stata pulita.\n\n");
+                    break;
             }
-            break;
+        }
+        else
+            new_write(sockid, message.text, 256);
     }
 }
 
@@ -149,14 +128,19 @@ void new_write(int sockid, char *buffer, int dim)
     }
 }
 
-void sighandler(int signum)
+void *reading_function(void *arg)
 {
-    char buff[128 + 32];
-    switch(signum)
+    char text[256];
+    int *sockid = (int *)arg;
+    while(1)
     {
-        case SIGUSR1:
-            wait(NULL);
-            close(sockid);
+        if(new_read(*sockid, text, 256) == 0)
+        {
+            close(*sockid);
             exit(EXIT_SUCCESS);
+            break;
+        }
+        printf("%s", text);
+        fflush(stdout);
     }
 }

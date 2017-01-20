@@ -34,7 +34,7 @@
 void toggleCharacter(char *str);
 int safeString(char *str);
 
-void sendToOtherClients(int senderid, int serverid, char *text);
+void sendToOtherClients(int senderid, char *text);
 void sendAllMessage(int serverid, char *text);
 void sendClientMessage(int clientid, char *text);
 void sendRoomMessage(int senderid, int roomid, char *text);
@@ -288,15 +288,38 @@ int main()
                                 sprintf(format_text, "%s ha effettuato il login.\n", infoU[fd].name);
                                 sendServerMessage(format_text);
                             }
-                            else if(!strcmp(cmd, "/stats"))
+                            else if(!strcmp(cmd, "/setpassword"))
                             {
                                 if(infoU[fd].logged == FALSE)
                                 {
                                     sendClientMessage(fd, "[ERRORE] Devi loggarti con /login prima di utilizzare un comando.\n");
                                     break;
                                 }
-                                sprintf(format_text, "Nome: %s\nRank: %d\n", infoU[fd].name, infoU[fd].rank);
-                                sendClientMessage(fd, format_text);
+                                char old_password[32], new_password[32];
+                                if(sscanf(text, "%*s %s %s", old_password, new_password) != 2)
+                                {
+                                    sendClientMessage(fd, "[USO] /setpassword <vecchia> <nuova>\n");
+                                    break;
+                                }
+                                if(strcmp(old_password, infoU[fd].password) != 0)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] La vecchia password non corrisponde.\n");
+                                    break;
+                                }                                
+                                if(safeString(new_password) == 0)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Formato password non valido\n");
+                                    break;
+                                }
+                                if(strlen(new_password) < 6 || strlen(new_password) > 20)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] La password deve contenere da 6 a 20 caratteri.\n");
+                                    break;
+                                }
+                                strcpy(infoU[fd].password, new_password);
+                                saveUserData(fd);
+                                sendClientMessage(fd, "[INFO] La password è stata cambiata.\n");
+                                break;
                             }
                             else if(!strcmp(cmd, "/pm"))
                             {
@@ -317,11 +340,11 @@ int main()
                                     sendClientMessage(fd, "[ERRORE] Questa persona non risulta connessa.\n");
                                     break;
                                 }
-                                /*if(pid == fd)
+                                if(pid == fd)
                                 {
                                     sendClientMessage(fd, "[ERRORE] Non puoi inviare un PM a te stesso.\n");
                                     break;
-                                }*/
+                                }
                                 if(infoU[pid].logged == FALSE)
                                 {
                                     sendClientMessage(fd, "[ERRORE] Questa persona deve ancora effettuare il login.\n");
@@ -714,6 +737,41 @@ int main()
                                 sendClientMessage(fd, "[INFO] L'account è stato bannato dal server.\n");
                                 kickFromS(pid);
                             }
+                            else if(!strcmp(cmd, "/kick"))
+                            {
+                                if(infoU[fd].rank != RANK_ADMIN)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Non hai i permessi per utilizzare questo comando.\n");
+                                    break;
+                                }
+                                if(infoU[fd].logged == FALSE)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Devi loggarti con /login prima di utilizzare un comando.\n");
+                                    break;
+                                }
+                                char name[16];
+                                if(sscanf(text, "%*s %s", name) != 1)
+                                {
+                                    sendClientMessage(fd, "[USO] /kick <nome>\n");
+                                    break;
+                                }
+                                int pid = getIDFromName(name);
+                                if(pid == -1)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Questa persona non risulta essere connessa.\n");
+                                    break;
+                                }
+                               /* if(pid == fd)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Non puoi kickare te stesso.\n");
+                                    break;
+                                }       */          
+                                sprintf(format_text, "%s ha kickato %s\n", infoU[fd].name, infoU[pid].name);
+                                sendServerMessage(format_text);
+                                sendClientMessage(pid, "[INFO] Sei stato kickato dal server.\n");
+                                sendClientMessage(fd, "[INFO] L'utente è stato kickato dal server.\n");
+                                kickFromS(pid);
+                            }
                             else if(!strcmp(cmd, "/setrank"))
                             {
                                 if(infoU[fd].rank != RANK_ADMIN)
@@ -752,6 +810,30 @@ int main()
                                 sprintf(format_text, "%s ha settato il rank di %s a %d.\n", infoU[fd].name, infoU[pid].name, rank);
                                 sendServerMessage(format_text);
                             }
+                            else if(!strcmp(cmd, "/broadcast"))
+                            {
+                                if(infoU[fd].rank != RANK_ADMIN)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Non hai i permessi per utilizzare questo comando.\n");
+                                    break;
+                                }
+                                if(infoU[fd].logged == FALSE)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Devi loggarti con /login prima di utilizzare un comando.\n");
+                                    break;
+                                }
+                                char msg[256];
+                                if(sscanf(text, "%*s %[^\n] \n", msg) != 1)
+                                {
+                                    sendClientMessage(fd, "[USO] /broadcast <messaggio>\n");
+                                    break;
+                                }
+                                char format_text[256];
+                                sprintf(format_text, "[BROADCAST (%s)] %s\n", infoU[fd].name, msg);
+                                sendClientMessage(fd, "[INFO] Il messaggio è stato inviato.\n");
+                                sendToOtherClients(fd, format_text);
+                                sendAllMessage(server_sockid, format_text);
+                            }
                             else
                                 sendClientMessage(fd, "[ERRORE] Comando inesistente.\n");
                         }
@@ -785,11 +867,11 @@ void toggleCharacter(char *str)
     str[len - 1] = '\0';
 }
 
-void sendToOtherClients(int senderid, int serverid, char *text)
+void sendToOtherClients(int senderid, char *text)
 {
     for(int fd = 0; fd < FD_SETSIZE; fd++)
         if(FD_ISSET(fd, &readfds))
-            if((fd != senderid) && (fd != serverid))
+            if((fd != senderid) && (fd != server_sockid))
                 sendClientMessage(fd, text);
 }
 
@@ -930,7 +1012,7 @@ int isIPBanned(char *IP)
 {
     FILE *fd;
     char tmp[13];
-    fd = fopen(BAN_PATH, "r");
+    fd = fopen(BAN_PATH, "a+");
     while(fscanf(fd, "%s", tmp) == 1)
         if(!strcmp(IP, tmp))
             return 1;
@@ -953,7 +1035,7 @@ int loadRoomData(int roomid, char *name)
     FILE *fd;
     char t_name[64], t_password[32], t_moderator[16];
     int t_slot;
-    fd = fopen(ROOMS_PATH, "r");
+    fd = fopen(ROOMS_PATH, "a+");
     while(fscanf(fd, "%[^,] , %[^,] , %[^,] , %d \n", t_name, t_password, t_moderator, &t_slot) == 4)
     {
         if(!strcmp(t_name, name))
@@ -976,7 +1058,7 @@ void loadAllRoomData()
     char t_name[64], t_password[32], t_moderator[16];
     int t_slot;
     int roomid = 0;
-    fd = fopen(ROOMS_PATH, "r");
+    fd = fopen(ROOMS_PATH, "a+");
     while(fscanf(fd, "%[^,] , %[^,] , %[^,] , %d \n", t_name, t_password, t_moderator, &t_slot) == 4)
     {
         strcpy(infoR[roomid].name, t_name);
@@ -997,7 +1079,7 @@ void saveRoomData(int roomid)
     char t_name[64], t_password[32], t_moderator[16];
     int t_slot;
     int found = FALSE;
-    fd_read = fopen(ROOMS_PATH, "r");
+    fd_read = fopen(ROOMS_PATH, "a+");
     fd_write = fopen("tmpr.txt", "w");
     while(fscanf(fd_read, "%[^,] , %[^,] , %[^,] , %d \n", t_name, t_password, t_moderator, &t_slot) == 4)
     {
@@ -1022,7 +1104,7 @@ void deleteRoomData(int roomid)
     FILE *fd_read, *fd_write;
     char t_name[64], t_password[32], t_moderator[16];
     int t_slot;
-    fd_read = fopen(ROOMS_PATH, "r");
+    fd_read = fopen(ROOMS_PATH, "a+");
     fd_write = fopen("tmpr.txt", "w");
     while(fscanf(fd_read, "%[^,] , %[^,] , %[^,] , %d \n", t_name, t_password, t_moderator, &t_slot) == 4)
     {
@@ -1068,7 +1150,7 @@ int loadUserData(int clientid, char *name)
     FILE *fd;
     char t_name[16], t_password[32];
     int t_rank;
-    fd = fopen(USERS_PATH, "r");
+    fd = fopen(USERS_PATH, "a+");
     while(fscanf(fd, "%[^,] , %[^,] , %d \n", t_name, t_password, &t_rank) == 3)
     {
         if(!strcmp(t_name, name))
@@ -1089,7 +1171,7 @@ void saveUserData(int clientid)
     char t_name[16], t_password[32];
     int t_rank;
     int found = FALSE;
-    fd_read = fopen(USERS_PATH, "r");
+    fd_read = fopen(USERS_PATH, "a+");
     fd_write = fopen("tmpu.txt", "w");
     while(fscanf(fd_read, "%[^,] , %[^,] , %d \n", t_name, t_password, &t_rank) == 3)
     {
@@ -1115,7 +1197,7 @@ int deleteUserData(char *name)
     char t_name[16], t_password[32];
     int t_rank;
     int found = FALSE;
-    fd_read = fopen(USERS_PATH, "r");
+    fd_read = fopen(USERS_PATH, "a+");
     fd_write = fopen("tmp.txt", "w");
     while(fscanf(fd_read, "%[^,] , %[^,] , %d \n", t_name, t_password, &t_rank) == 3)
     {
