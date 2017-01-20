@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 {
     if(argc != 2)
     {
-        printf("Specificare il nickname come primo argomento.\n");
+        printf("\nSpecificare il nickname come primo argomento.\n\n");
         exit(EXIT_FAILURE);
     }
     int msgid, sock_conn;
@@ -136,8 +136,8 @@ void *reading_function(void *arg)
     {
         if(new_read(*sockid, text, 256) == 0)
         {
-            close(*sockid);
-            printf("[INFO] La comunicazione con il server è terminata.\n");
+            //close(*sockid);
+            printf("\nLa comunicazione con il server è terminata.\n");
             fflush(stdout);
             exit(EXIT_SUCCESS);
             break;

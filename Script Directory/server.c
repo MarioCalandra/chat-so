@@ -88,7 +88,7 @@ struct
     char password[32];
     int slot;
     int clients;
-} infoR[MAX_ROOM]; // /banip /kick /setrank /broadcast /remove
+} infoR[MAX_ROOM];
 
 char *general_commands[] = {"/register", "/login", "/setpassword", "/pm", "/clear", "/exit", "/help"};
 char *room_commands[] = {"/refresh", "/join", "/leave", "/list"};
@@ -704,10 +704,10 @@ int main()
                                     sendClientMessage(fd, "[ERRORE] Questa persona non risulta essere connessa.\n");
                                     break;
                                 }
-                                if(pid == fd)
+                                /*if(pid == fd)
                                 {
                                     sendClientMessage(fd, "[ERRORE] Non puoi kickare te stesso.\n");
-                                }
+                                }*/
                                 int roomid = infoU[pid].room;
                                 if(roomid == -1)
                                 {
@@ -832,7 +832,7 @@ int main()
                                 {
                                     sendClientMessage(fd, "[ERRORE] Non puoi kickare te stesso.\n");
                                     break;
-                                }         
+                                }
                                 sprintf(format_text, "%s ha kickato %s\n", infoU[fd].name, infoU[pid].name);
                                 sendServerMessage(format_text);
                                 sendClientMessage(pid, "[INFO] Sei stato kickato dal server.\n");
@@ -899,7 +899,7 @@ int main()
                                 sprintf(format_text, "[BROADCAST (%s)] %s\n", infoU[fd].name, msg);
                                 sendClientMessage(fd, "[INFO] Il messaggio è stato inviato.\n");
                                 sendToOtherClients(fd, format_text);
-                                sendAllMessage(server_sockid, format_text);
+                                sendServerMessage(format_text);
                             }
                             else
                                 sendClientMessage(fd, "[ERRORE] Comando inesistente.\n");
@@ -1208,7 +1208,7 @@ int controlClient(int clientid)
     char buffer[128];
     if(safeString(infoU[clientid].name) == 0)
     {
-        sendClientMessage(clientid, "Il formato del nickname non è valido.\n\n");
+        sendClientMessage(clientid, "\nIl formato del nickname non è valido.\n");
         return 0;
     }
     if(isIPBanned(infoU[clientid].IP))
