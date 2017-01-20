@@ -22,7 +22,7 @@ Una volta effettuato il login, all'utente sarà mostrata una panoramica delle *s
 
 ###INFORMAZIONI
 
-Le informazioni di *utenti* e *stanze* sono salvate all'interno di due file `.csv`. Il server ne gestisce il salvataggio e il caricamento tramite opportune funzioni (vedi `loadRoomData`, `loadAllRoomData`, `saveRoomData`, `deleteRoomData`, `loadUserData`, `saveUserData`, `deleteUserData`). Nel file `users.csv` ad ogni entry corrisponde un nome, la password e il rank (variabile da 1 a 3). Nel file `rooms.csv` ad ogni entry corrisponde il nome della stanza, la password (*public* se pubblica), il nome dell'utente moderatore e il numero massimo di persone ospitabili. Nei file `log.txt` e `ban.txt` sono salvati rispettivamente i log del server, ossia i *messaggi* inviati dai client e le *azioni* commesse ad ognuno di essi, e gli indirizzi IP bannati.
+Le informazioni di *utenti* e *stanze* sono salvate all'interno di due file `.csv`. Il server ne gestisce il salvataggio e il caricamento tramite opportune funzioni (vedi `loadRoomData`, `loadAllRoomData`, `saveRoomData`, `deleteRoomData`, `loadUserData`, `saveUserData`, `deleteUserData`). Nel file `users.csv` ad ogni entry corrisponde un nome, la password e il rank (variabile da 1 a 3). Nel file `rooms.csv` ad ogni entry corrisponde il nome della stanza, la password (*public* se pubblica), il nome dell'utente moderatore e il numero massimo di persone ospitabili. Nei file `log.txt` e `ban.txt` sono salvati rispettivamente i log del server, ossia i *messaggi* inviati dai client e le *azioni* commesse da ognuno di essi, e gli indirizzi IP bannati.
 
 ###COMANDI
 
