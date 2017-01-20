@@ -25,13 +25,13 @@ Una volta effettuato il login, all'utente sarà mostrata una panoramica delle *s
 
 Per interagire con il server, è indispensabile che l'utente faccia uso di determinati *comandi* da scrivere direttamente nel writer. Ognuno di essi ha la particolarità di essere preceduto dal simbolo `/` per far capire al server di avere a che fare con un comando e non con un semplice testo. Di seguito viene mostrata una lista dei comandi disponibili, con breve spiegazione annessa.
 
--*/help*: mostra una panoramica dei comandi *usufruibili* dall'utente
--*/register*: permette ad un utente non registrato di registrarti
--*/login*: necessario per effettuare il login
--*/setpassword*: serve a cambiare la propria password
--*/pm*: permette una comunicazione tra due utenti tramite *Private Message*
--*/clear*: esegue *clear* nel client per pulire la shell (operazione effettuata tramite una `fork` e una `execlp` nel client)
--*/exit*: disconnette il client dal server
+- */help*: mostra una panoramica dei comandi *usufruibili* dall'utente
+- */register*: permette ad un utente non registrato di registrarti
+- */login*: necessario per effettuare il login
+- */setpassword*: serve a cambiare la propria password
+- */pm*: permette una comunicazione tra due utenti tramite *Private Message*
+- */clear*: esegue *clear* nel client per pulire la shell (operazione effettuata tramite una `fork` e una `execlp` nel client)
+- */exit*: disconnette il client dal server
 
 */refresh*: aggiorna la panoramica delle stanze
 */join*: permette di accedere ad una stanza
