@@ -137,6 +137,8 @@ void *reading_function(void *arg)
         if(new_read(*sockid, text, 256) == 0)
         {
             close(*sockid);
+            printf("[INFO] La comunicazione con il server è terminata.\n");
+            fflush(stdout);
             exit(EXIT_SUCCESS);
             break;
         }
