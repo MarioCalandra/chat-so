@@ -1,4 +1,4 @@
-#Progetto di Sistemi Operativi.
+#Progetto di Sistemi Operativi
 
 ###CLIENT
 
@@ -19,4 +19,4 @@ Quando un client si connette, il server valuterà se il *nickname* associato sia
 * Se il nickname è presente in database, il server chiederà la password per effettuare il login;
 * Se il nickname non è presente in database, il server richiederà la registrazione.
 
-
+Una volta effettuato il login, all'utente sarà mostrata una panoramica delle *stanze* disponibili.
