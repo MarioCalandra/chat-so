@@ -14,3 +14,9 @@ E' composto da un semplice algoritmo capace di inoltrare quanto viene scritto al
 
 Il server è capace di gestire più client contemporaneamente grazie all'uso della funzione `select`: l'algoritmo è stato studiato, preso dal *Beginning Linux* e successivamente modificato opportunamente. Esso è capace di comunicare con i client in maniera estremamente intuitiva tramite opportune funzioni da me realizzate (vedi `sendClientMessage`, `sendAllMessage`, `sendToOtherClients`, `sendRoomMessage`).
 Ad ogni client viene associato un *file descriptor* che ne rappresenta l'ID di riferimento; in questo modo risulta più semplice ed immediato il riconoscimento di ogni client. Ognuno di questi è caratterizzato da una opportuna *struct* in cui sono memorizzate informazioni di vario tipo.
+Quando un client si connette, il server valuterà se il *nickname* associato sia registrato o meno:
+
+* Se il nickname è presente in database, il server chiederà la password per effettuare il login;
+* Se il nickname non è presente in database, il server richiederà la registrazione.
+
+
