@@ -37,6 +37,7 @@
 
 void toggleCharacter(char *str);
 int safeString(char *str);
+void sighandler(int sig);
 
 void sendToOtherClients(int senderid, char *text);
 void sendAllMessage(int serverid, char *text);
@@ -87,7 +88,7 @@ struct
     char password[32];
     int slot;
     int clients;
-} infoR[MAX_ROOM];
+} infoR[MAX_ROOM]; // /banip /kick /setrank /broadcast /remove
 
 char *general_commands[] = {"/register", "/login", "/setpassword", "/pm", "/clear", "/exit", "/help"};
 char *room_commands[] = {"/refresh", "/join", "/leave", "/list"};
@@ -119,6 +120,7 @@ int main()
         perror("Listen server");
         exit(EXIT_FAILURE);
     }
+    signal(SIGINT, sighandler);
     
     printf("\n[AVVISO] Il server è stato avviato con successo.\n\n");
     FD_ZERO(&readfds);
@@ -1301,4 +1303,13 @@ int new_read(int sockid, char *buffer, int dim)
             break;
     }
     return n;
+}
+
+void sighandler(int sig)
+{
+    for(int fd = 0; fd < FD_SETSIZE; fd ++)
+        if(FD_ISSET(fd, &readfds) && fd != server_sockid)
+            close(fd);
+    close(server_sockid);
+    exit(EXIT_SUCCESS);
 }
