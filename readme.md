@@ -29,7 +29,7 @@ Le informazioni di *utenti* e *stanze* sono salvate all'interno di due file `.cs
 Per interagire con il server, è indispensabile che l'utente faccia uso di determinati *comandi* da scrivere direttamente nel writer preceduti dal simbolo `/`. Di seguito viene mostrata una lista dei comandi disponibili, con breve spiegazione annessa.
 
 - */help*: mostra una panoramica dei comandi *usufruibili* dall'utente
-- */register*: permette ad un utente non registrato di registrarti
+- */register*: permette ad un utente non registrato di registrarsi
 - */login*: necessario per effettuare il login
 - */setpassword*: serve a cambiare la propria password
 - */pm*: permette una comunicazione tra due utenti tramite *Private Message*
