@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 {
     if(argc != 2)
     {
-        printf("[USO] ./client_i <nickname>\n");
+        printf("Specificare il nickname come primo argomento.\n");
         exit(EXIT_FAILURE);
     }
     int msgid, sock_conn;
