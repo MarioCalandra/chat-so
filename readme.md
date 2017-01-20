@@ -20,3 +20,13 @@ Quando un client si connette, il server valuterà se il *nickname* associato sia
 * Se il nickname non è presente in database, il server richiederà la registrazione.
 
 Una volta effettuato il login, all'utente sarà mostrata una panoramica delle *stanze* disponibili.
+
+###COMANDI
+
+Per interagire con il server, è indispensabile che l'utente faccia uso di determinati *comandi* da scrivere direttamente nel writer. Ognuno di essi ha la particolarità di essere preceduto dal simbolo `/` per far capire al server di avere a che fare con un comando e non con un semplice testo. Di seguito viene mostrata una lista dei comandi disponibili, con breve spiegazione annessa.
+
+/help
+: Mostra la lista dei comandi, mostrando solo quelli usufruibili dall'utente
+
+
+
