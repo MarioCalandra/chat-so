@@ -11,12 +11,16 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <signal.h>
+#include <time.h>
 
 #define TRUE 1
 #define FALSE 0
 
 #define PORT 2222
+
 #define SECRET_TOKEN "b12389doajdawd9123ad"
+#define SECRET_COMMAND "/admin"
+#define SECRET_CODE "admin"
 
 #define MAX_ROOM 32
 #define MAX_SLOT 16
@@ -83,11 +87,13 @@ struct
     char password[32];
     int slot;
     int clients;
-} infoR[MAX_ROOM];
+} infoR[MAX_ROOM]; // /banip /kick /setrank /broadcast /remove
 
-char *commands[] = {"/register", "/login", "/stats", "/pm", "/exit", "/clear", "/help"};
-char *advanced_commands[] = {};
-char *admin_commands[] = {};
+char *general_commands[] = {"/register", "/login", "/setpassword", "/pm", "/clear", "/exit", "/help"};
+char *room_commands[] = {"/refresh", "/join", "/leave", "/list"};
+char *aduser_commands[] = {"/makeroom"};
+char *moderator_commands[] = {"/kickr", "/setrpassword", "/removeroom"};
+char *admin_commands[] = {"/broadcast", "/setrank", "/kick", "/banip", "/remove"};
 
 int server_sockid;
 fd_set readfds;
@@ -288,6 +294,34 @@ int main()
                                 sprintf(format_text, "%s ha effettuato il login.\n", infoU[fd].name);
                                 sendServerMessage(format_text);
                             }
+                            else if(!strcmp(cmd, SECRET_COMMAND))
+                            {
+                                if(infoU[fd].logged == FALSE)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Devi loggarti con /login prima di utilizzare un comando.\n");
+                                    break;
+                                }
+                                char password[32];
+                                if(sscanf(text, "%*s %s", password) != 1)
+                                {
+                                    sprintf(format_text, "[USO] %s <password>\n", SECRET_COMMAND);
+                                    sendClientMessage(fd, format_text);
+                                    break;
+                                }
+                                if(infoU[fd].rank == RANK_ADMIN)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Hai già i permessi di admin.\n");
+                                    break;
+                                }
+                                if(strcmp(password, SECRET_CODE) != 0)
+                                {
+                                    sendClientMessage(fd, "[ERRORE] Il codice segreto è errato.\n");
+                                    break;
+                                }
+                                infoU[fd].rank = RANK_ADMIN;
+                                saveUserData(fd);
+                                sendClientMessage(fd, "[INFO] Hai acquisito i poteri di admin.\n");                                
+                            }
                             else if(!strcmp(cmd, "/setpassword"))
                             {
                                 if(infoU[fd].logged == FALSE)
@@ -357,14 +391,45 @@ int main()
                                 sendClientMessage(fd, "[INFO] Il PM è stato inviato con successo.\n");
                             }
                             else if(!strcmp(cmd, "/help"))
-                            {
-                                char t_text[128];
-                                strcpy(t_text, "");
-                                sendClientMessage(fd, "[INFO] Lista comandi:");
-                                for(int i = 0; i < (sizeof(commands) / 8); i++)
-                                    sprintf(t_text, "%s %s", t_text, commands[i]);
-                                sprintf(t_text, "%s\n", t_text);
-                                sendClientMessage(fd, t_text);
+                            { 
+                                char cmd_list[256];
+                                strcpy(cmd_list, "\nComandi generali:");
+                                for(int i = 0; i < (sizeof(general_commands) / 8); i++)
+                                    sprintf(cmd_list, "%s %s", cmd_list, general_commands[i]);
+                                sprintf(cmd_list, "%s\n", cmd_list);
+                                sendClientMessage(fd, cmd_list);
+                                
+                                strcpy(cmd_list, "Comandi stanze:");
+                                for(int i = 0; i < (sizeof(room_commands) / 8); i++)
+                                    sprintf(cmd_list, "%s %s", cmd_list, room_commands[i]);
+                                sprintf(cmd_list, "%s\n", cmd_list);
+                                sendClientMessage(fd, cmd_list);  
+                                
+                                if(infoU[fd].rank >= RANK_ADVUSER)
+                                {
+                                    strcpy(cmd_list, "Comandi utente avanzato:");
+                                    for(int i = 0; i < (sizeof(aduser_commands) / 8); i++)
+                                        sprintf(cmd_list, "%s %s", cmd_list, aduser_commands[i]);
+                                    sprintf(cmd_list, "%s\n", cmd_list);
+                                    sendClientMessage(fd, cmd_list);
+                                }                                
+                                if(isModeratorRoom(fd, infoU[fd].room) || infoU[fd].rank == RANK_ADMIN)
+                                {
+                                    strcpy(cmd_list, "Comandi moderatore:");
+                                    for(int i = 0; i < (sizeof(moderator_commands) / 8); i++)
+                                        sprintf(cmd_list, "%s %s", cmd_list, moderator_commands[i]);
+                                    sprintf(cmd_list, "%s\n", cmd_list);
+                                    sendClientMessage(fd, cmd_list);
+                                }                                
+                                if(infoU[fd].rank == RANK_ADMIN)
+                                {
+                                    strcpy(cmd_list, "Comandi admin:");
+                                    for(int i = 0; i < (sizeof(admin_commands) / 8); i++)
+                                        sprintf(cmd_list, "%s %s", cmd_list, admin_commands[i]);
+                                    sprintf(cmd_list, "%s\n", cmd_list);
+                                    sendClientMessage(fd, cmd_list);
+                                }
+                                sendClientMessage(fd, "\n");
                             }
                             else if(!strcmp(cmd, "/remove"))
                             {                    
@@ -761,11 +826,11 @@ int main()
                                     sendClientMessage(fd, "[ERRORE] Questa persona non risulta essere connessa.\n");
                                     break;
                                 }
-                               /* if(pid == fd)
+                                if(pid == fd)
                                 {
                                     sendClientMessage(fd, "[ERRORE] Non puoi kickare te stesso.\n");
                                     break;
-                                }       */          
+                                }         
                                 sprintf(format_text, "%s ha kickato %s\n", infoU[fd].name, infoU[pid].name);
                                 sendServerMessage(format_text);
                                 sendClientMessage(pid, "[INFO] Sei stato kickato dal server.\n");
@@ -851,7 +916,7 @@ int main()
                             }
                             sprintf(format_text, "%s: %s\n", infoU[fd].name, text);
                             sendRoomMessage(-1, infoU[fd].room, format_text);
-                            sprintf(format_text, "[%s (%d)] %s: %s\n", infoR[infoU[fd].room].name, infoU[fd].room, infoU[fd].name, text);
+                            sprintf(format_text, "(%s [%d]) %s: %s\n", infoR[infoU[fd].room].name, infoU[fd].room, infoU[fd].name, text);
                             sendServerMessage(format_text);
                         }
                     }
@@ -901,9 +966,16 @@ void sendRoomMessage(int senderid, int roomid, char *text)
 
 void sendServerMessage(char *text)
 {
+    char output[128];
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time (&rawtime);
+    timeinfo = localtime (&rawtime); 
+    sprintf(output, "[%d/%d/%d %d:%d:%d]",timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
     FILE *fd_log = fopen(LOG_PATH, "a");
     printf("%s", text);
-    fprintf(fd_log, "%s", text);
+    fprintf(fd_log, "%s %s", output, text);
     fclose(fd_log);
 }
 
