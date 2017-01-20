@@ -55,6 +55,8 @@ Di seguito i comandi usufruibili solo da un *admin*:
 - */setrank*: permette di settare il rank di un utente
 - */remove*: rimuove dal database un utente
 
+All'interno del codice sono stati definiti un comando e una password segreta che permettono all'utente di accedere con permessi admin. Di default, comando e password sono */admin* e *admin*.
+
 ###SICUREZZA
 
 Quando il client effettua la connessione al server, quest'ultimo richiede la ricezione di un determinato codice (*token*). Qualora il client non dovesse comunicare un codice, o dovesse comunicarne uno errato, verrà segnalato un *tentativo di connessione da parte di un client sconosciuto* e la connessione client-server verrà chiusa. Per prevenire tentativi di SQL Injection, si è cercato quanto il più possibile di evitare il salvataggio di dati contenenti il simbolo `,`. Non è possibile una connessione da parte di due o più client aventi lo stesso IP.
