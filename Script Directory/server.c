@@ -69,6 +69,7 @@ int isModeratorRoom(int clientid, int roomid);
 int isFullRoom(int roomid);
 
 int new_read(int sockid, char *buffer, int dim);
+int new_write(int sockid, char *buffer, int dim);
 
 struct 
 {
@@ -120,13 +121,16 @@ int main()
         perror("Listen server");
         exit(EXIT_FAILURE);
     }
-    signal(SIGINT, sighandler);
+    int enable = 1;
+    setsockopt(server_sockid, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+    setsockopt(server_sockid, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
     
     printf("\n[AVVISO] Il server è stato avviato con successo.\n\n");
     FD_ZERO(&readfds);
     FD_SET(server_sockid, &readfds);
     
     loadAllRoomData();
+    signal(SIGINT, sighandler);
     
     char text[512], format_text[512];    
     while(1)
@@ -151,7 +155,7 @@ int main()
                     struct sockaddr_in c_address;
                     socklen_t socklen = sizeof(c_address);
                     client_sockid = accept(server_sockid, (struct sockaddr *)&c_address, &socklen);
-                    
+                        
                     initClient(client_sockid, c_address);
                     FD_SET(client_sockid, &readfds);
                     
@@ -954,7 +958,8 @@ void sendClientMessage(int clientid, char *text)
 {
     char t_text[256];    
     strcpy(t_text, text);
-    send(clientid, t_text, strlen(t_text) + 1, 0);
+    if((new_write(clientid, t_text, strlen(t_text) + 1)) != (strlen(t_text) + 1))
+        printf("sendClientMessage: perdita di dati.\n");
 }
 
 void sendRoomMessage(int senderid, int roomid, char *text)
@@ -1300,6 +1305,18 @@ int new_read(int sockid, char *buffer, int dim)
     {
         n = read(sockid, &buffer[i], 1);
         if(n <= 0 || buffer[i] == '\0')
+            break;
+    }
+    return n;
+}
+
+int new_write(int sockid, char *buffer, int dim)
+{  
+    int i, n = 0;
+    for(i = 0; i < dim; i++)
+    {
+        n += write(sockid, &buffer[i], 1);
+        if(buffer[i] == '\0')
             break;
     }
     return n;

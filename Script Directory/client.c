@@ -56,7 +56,11 @@ int main(int argc, char *argv[])
     {
         perror("Connect client");
         exit(EXIT_FAILURE);
-    }    
+    }
+    int enable = 1;
+    setsockopt(sockid, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+    setsockopt(sockid, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
+    
     char format_text[256];
     sprintf(format_text, "%s", argv[1]);
     new_write(sockid, token, 128);
