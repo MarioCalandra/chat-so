@@ -1,4 +1,4 @@
-**WRITER
+**WRITER**
 
 Per ragioni di mescolamento tra input e output nella stessa schermata, è stato necessario creare un writer da cui poter scrivere. Il writer e il client comunicano tramite un'opportuna *message queue*. E' composto da un semplice algoritmo capace di inoltrare quanto viene scritto al client.
 
