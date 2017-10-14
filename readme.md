@@ -1,4 +1,4 @@
-#Progetto di Sistemi Operativi
+
 
 ###WRITER
 
